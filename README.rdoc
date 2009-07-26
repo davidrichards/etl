@@ -1,0 +1,21 @@
+== ETL
+
+Just a simple ETL tool based on callbacks.  It may be easier to keep things straight this way.  Maybe not...
+
+It may be useful because:
+
+* It chains the ETL process into one atomic run (a good idea?)
+* It loads a number of useful tools for ETL (fastercsv, open-uri)
+* It contains a utility suite that will be added to
+* It allows a series of intermediate steps to be added loosely
+* It logs the process as we go
+
+==Usage
+
+==Installation
+
+=== Dependencies
+
+==COPYRIGHT
+
+Copyright (c) 2009 David Richards. See LICENSE for details.

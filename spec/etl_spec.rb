@@ -1,7 +1,16 @@
 require File.dirname(__FILE__) + '/spec_helper'
 
 describe "Etl" do
-  it "fails" do
-    fail "hey buddy, you should probably rename this file and start specing for real"
+  it "should use rubygems" do
+    defined?(Gem).should eql('constant')
   end
+  
+  it "should use ActiveSupport" do
+    defined?(ActiveSupport).should eql('constant')
+  end
+  
+  it "should use OpenStruct" do
+    defined?(OpenStruct).should eql('constant')
+  end
+  
 end
