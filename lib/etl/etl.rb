@@ -3,6 +3,7 @@
 # stages of the process.  Raise errors liberally if things go wrong, the
 # data is being staged and the process can usually be restarted once the
 # issue has been addressed. 
+
 class ETL
   
   VALID_STATES = [:before_extract, :extract, :after_extract, :before_transform, :transform, :after_transform, :before_load, :load, :after_load, :complete].freeze
@@ -11,7 +12,7 @@ class ETL
   if defined?(TeguGears) == 'constant'
     include TeguGears
   end
-
+  
   # Using ActiveSupports callback system
   include ActiveSupport::Callbacks
   
@@ -23,6 +24,79 @@ class ETL
       etl
     end
     alias :call :process
+
+    # Sets up a logger for the class.  Respects inheritance, so a different
+    # logger will be created for each ETL subclass. 
+    # Using the standard log levels here: DEBUG < INFO < WARN < ERROR < FATAL
+    def logger
+      
+      logger_name = (self.to_s + "_logger").to_sym
+      
+      # Find and return the cached logger, if it's setup
+      logger = read_inheritable_attribute(logger_name)
+      return logger if logger
+      
+      # Create a logger.  Will configure it here and save it in a moment.
+      logger = Log4r::Logger.new(self.to_s)
+      
+      # Set my default output format
+      format = Log4r::PatternFormatter.new(:pattern => "[%l] %d :: %m")
+      
+      # Setup a console logger with our formatting
+      console = Log4r::StderrOutputter.new 'console'
+      console.level = Log4r::WARN
+      console.formatter = format
+      
+      # Setup a logger to a file with our formatting
+      logfile = Log4r::FileOutputter.new('logfile', 
+                               :filename => File.join(self.logger_root, "#{self.to_s}.log"), 
+                               :trunc => false,
+                               :level => Log4r::DEBUG)
+      logfile.formatter = format
+      
+      # Tell the logger about both outputs.
+      logger.add('console','logfile')
+      
+      # Store the logger as an inheritable class attribute
+      write_inheritable_attribute(logger_name, logger)
+      
+      # Return the logger
+      logger
+    end
+    
+    # First tries to get the cached @@logger_root
+    # Second, sets the global @@logger_root unless it is cached.  Sets it to
+    # the best possible place to locate the logs: 
+    # 1) where log will be from RAILS_ROOT/vendor/gems/etl
+    # 2) where log will be in a Rails model
+    # 3) where log will be in a Rails lib
+    # 4) in the local directory where ETL is being subclassed
+    # Third, uses the subclasses stored logger_root, ignoring all the rest
+    # if this is found. 
+    def logger_root
+      @@logger_root ||= case
+      when File.exist?(File.dirname(__FILE__) + "/../../../../../log")
+        File.expand_path(File.dirname(__FILE__) + "/../../../../../log")
+      when File.exist?(File.dirname(__FILE__) + "/../../log")
+        File.expand_path(File.dirname(__FILE__) + '/../../log')
+      when File.exist?(File.dirname(__FILE__) + "/../log")
+        File.expand_path(File.dirname(__FILE__) + '/../log')
+      when File.exist?(File.dirname(__FILE__) + "/log")
+        File.expand_path(File.dirname(__FILE__) + '/log')
+      else
+        File.expand_path(File.dirname(__FILE__))
+      end
+      logger_root = read_inheritable_attribute(:logger_root) || @@logger_root
+    end
+    
+    # Sets the logger root for the subclass, and sets it globally if this is
+    # set on ETL.  So, ETL.logger_root = "some location" sets the logger
+    # root for all subclasses.  This is useful if a lot of ETL is being done,
+    # and it needs to be logged in a non-standard place. 
+    def logger_root=(value)
+      write_inheritable_attribute(:logger_root, value)
+      @@logger_root = value if self == ETL
+    end
   end
 
   # A series of callbacks that make the process quite transparent
@@ -66,19 +140,20 @@ class ETL
     @block = block
 
     etl_callback(:before_extract)
-    extract
+    extract if @state == :extract
     advance_from(:extract)
     etl_callback(:after_extract)
     
     etl_callback(:before_transform)
-    transform
+    transform if @state == :transform
     advance_from(:transform)
     etl_callback(:after_transform)
     
     etl_callback(:before_load)
-    load
+    load if @state == :load
     advance_from(:load)
     etl_callback(:after_load)
+    @state
   end
   
   after_extract :process_raw_data
@@ -121,7 +196,7 @@ class ETL
     def advance_from(callback)
       
       raise ArgumentError, "State: #{callback} not recognized" unless VALID_STATES.include?(callback)
-      
+      before_state = @state
       @state = case @state
       when :before_extract
         :extract
@@ -144,6 +219,9 @@ class ETL
       when :complete
         :complete
       end
+      
+      self.class.logger.info "Advanced from #{before_state} to #{@state}"
+      
     end
     
     def process_raw_data
