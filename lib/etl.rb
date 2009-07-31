@@ -7,16 +7,24 @@
 
 require 'rubygems'
 require 'activesupport'
-
-begin
-  gem 'tegu_gears'
-  require 'tegu_gears'
-rescue Gem::LoadError
-  # Do nothing if this is not available.  It's a convenience, not a requirement.
-end
-
 require 'ostruct'
 require 'log4r'
+
+def load_gem_casually(name)
+  begin
+    gem name
+    require name
+  rescue Gem::LoadError
+    # Do nothing if this is not available.  It's a convenience, not a requirement.
+  end
+end
+
+load_gem_casually('tegu_gears')
+load_gem_casually('ar-extensions')
+load_gem_casually('data_frame')
+load_gem_casually('babel_icious')
+
+Dir.glob("#{File.dirname(__FILE__)}/helpers/*.rb").each { |file| require file }
 
 $:.unshift(File.dirname(__FILE__))
 

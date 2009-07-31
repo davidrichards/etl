@@ -1,14 +1,18 @@
 == ETL
 
-Just a simple ETL tool based on callbacks.  It may be easier to keep things straight this way.  Maybe not...
+Projects always need data.  The standard way to get data is in three stages:
 
-It may be useful because:
+* Extract
+* Transform
+* Load
 
-* It chains the ETL process into one atomic run (a good idea?)
-* It loads a number of useful tools for ETL (fastercsv, open-uri)
-* It contains a utility suite that will be added to
-* It allows a series of intermediate steps to be added loosely
-* It logs the process as we go
+So, for me, this is true for my analytical work (Tegu) and any web application (Rails).  The problems I am solving are:
+
+* Dealing with ETL while I have it wrong (I tend to get it wrong a few times before I get all the edge cases worked out)
+* Keeping the granularity of the data matched to the granularity of my models (Running it the right number of times, combining the data into a time series or a single model)
+* Logging my efforts
+* Storing some utilities and shortcuts to allow me to reuse older work
+
 
 ==Usage
 
