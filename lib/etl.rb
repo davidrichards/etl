@@ -20,7 +20,7 @@ def load_gem_casually(name)
 end
 
 load_gem_casually('tegu_gears')
-load_gem_casually('ar-extensions')
+# load_gem_casually('ar-extensions')
 load_gem_casually('data_frame')
 load_gem_casually('babel_icious')
 
