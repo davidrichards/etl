@@ -100,6 +100,12 @@ describe ETL do
       counter.process
       PostBoard.board.last.should eql(14)
     end
+    
+    it "should move data in @raw to @data at every stage" do
+      etl = ExplicitRawToDataShow.new
+      etl.process
+      etl.data.should eql(2)
+    end
 
   end
 end
@@ -217,5 +223,15 @@ class ShowCounter < Demo
   def post_state
     advance_count
     PostBoard.post self.count
+  end
+end
+
+class ExplicitRawToDataShow < ETL
+  def extract
+    @raw = 1
+  end
+  
+  def transform
+    @raw = @data + 1
   end
 end

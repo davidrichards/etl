@@ -28,4 +28,9 @@ Dir.glob("#{File.dirname(__FILE__)}/helpers/*.rb").each { |file| require file }
 
 $:.unshift(File.dirname(__FILE__))
 
+class ExtractError < StandardError; end
+class TransformError < StandardError; end
+# Note, LoadError is already used.
+class LoadingError < StandardError; end
+
 require 'etl/etl'

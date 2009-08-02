@@ -13,12 +13,192 @@ So, for me, this is true for my analytical work (Tegu) and any web application (
 * Logging my efforts
 * Storing some utilities and shortcuts to allow me to reuse older work
 
+The philosophy of this gem is to create a simple core utility and then offer other utilities that can be useful.  For example, you may want to just run:
 
-==Usage
+  require 'rubygems'
+  require 'etl'
+  
+In this case, you could create a class like this:
+
+  class MyETL < ETL
+    def extract
+      # ...
+    end
+    
+    def tranform
+      # ...
+    end
+    
+    def load
+      # ...
+    end
+  end
+  
+Whatever you want to do at every stage, you just do it.  Usually, you'll set @raw to whatever data has been extracted or transformed.  After the after_extract and after_transform callbacks are finished, the contents of @raw are set to @data.  So, you could do something like this:
+
+  def extract
+    @raw = 1
+  end
+
+  def transform
+    @raw = @data + 1
+  end
+
+  def load
+    raise StandardError, "Data wasn't transformed right" unless @data == 2
+  end
+
+Or, more interestingly:
+
+  class ValidatingETL < ETL
+    after_extract :validate_array_data
+    before_transform :extract_header
+    after_transform :validate_addresses
+
+    def extract
+      # ...
+    end
+  
+    def tranform
+      # Something using @data and @header
+    end
+  
+    def load
+      # ...
+    end
+    
+    def validate_array_data
+      raise ExtractError, "Could not get an array of arrays" unless 
+        @raw.is_a?(Array) and not @raw.empty? and @raw.first.is_a?(Array)
+    end
+    
+    def extract_header
+      @header = @raw.shift
+    end
+    
+    def validate_addresses
+      raise TransformError, "Did not get valid addresses" unless ...
+    end
+  end
+  
+Notice how we have special errors, just so that it's easier to use the logs.  They are:
+
+* ExtractError
+* TransformError
+* LoadingError (because LoadError means something else)
+
+Also notice that I just raise errors instead of trying to do anything special when things don't match.  This is the whole purpose of ETL, to make it easy to re-run the script until it is right.
+
+=== When Something Goes Wrong
+
+If something goes wrong, you can address the issue and just restart it.
+
+  @etl = SomethingThatWillBreak.new
+  @etl.process(:with => :options)
+  # Errors are raised
+  # Fix what was wrong
+  @etl.process
+  
+The original options are still stored in @etl, so you don't need to resend those.  If you send them back in, they will be ignored anyway.  If the problem was that you setup the options wrong, you can write something like
+
+  @etl.options[:with => :better_options]
+  
+Because of the nature of the code, the stages that passed won't be re-run.  In fact, you can take a completed etl object and call it all day long, and it will never try to restart itself.  If you need it to restart, or you want to restart at an earlier stage, just do something like:
+
+  @etl.rewind_to :some_previous_state
+  
+States to choose from are:
+
+* :before_extract
+* :extract
+* :after_extract
+* :before_transform
+* :transform
+* :after_transform
+* :before_load
+* :load
+* :after_load
+* :complete
+
+=== Logs
+
+The logs are pretty useful, I think.  I use the log pretty aggressively when I use these tools.  That's because most of the value of ETL well-done is the knowledge that it was actually done right.  You might find the logs where you expect them to be, here's how I infer where to stick the logs:
+
+* If you're in a Rails app, and you've got etl in RAILS_ROOT/vendor/gems, then it will log in RAILS_ROOT/logs
+* If you're in a Rails app, and you've got a class in RAILS_ROOT/lib that uses ETL, it will log in RAILS_ROOT/logs
+* If you're in any app, and there is a direct subdirectory, log, the log will be held there
+* If you're in any app, and you set ETL.logger_root = '/some/directory', then the logs will be in /some/directory for all ETL processes.
+* If you're in any app, and you set SomeClass.logger_root = '/some/directory', then there will be a file /some/directory/SomeClass.log that holds the logs for that class, but all other classes will follow the rules notes above.
+
+Basically, all I'm saying is that you should be able to get the logs to where you need them.  I don't make any effort in this code to consolidate logs.  There is so much that goes on with that, I'm going to let you set your own conventions.  If you really want to consolidate things, you might want to look at syslog-ng or similar open-source tools.
+
+There is also a log that goes to standard error for any error at WARN or above.  I use Log4r here, so that very rich logging environment can be used if you have more robust logging needs.
+
+== More Interesting Examples
+
+=== Financial Data Loaded in a Rails App
+
+=== Using BaseCamp Data
+
+=== Utilities
+
+I'll probably keep extracting generalized utilities and put them into this gem.  For instance, with just a little creativity, I can mix open-uri with FasterCSV and get pretty decent access to remote CSV files:
+
+  require 'etl/csv_et'
+  class MyCSV < CSV::ET
+    def load
+      # Do something with the array of arrays in @data
+    end
+  end
+  
+First, notice that I called the class CSV::ET, instead of CSV::ETL.  That's because I didn't implement any load function.  Also, notice that I required etl/csv_et explicitly.  There are a number of utilities that I've written.  More will be extracted and made useful over time:
+
+* There is a CSV::ActiveRecordLoad that uses ar-extension's import function to load quickly into MySQL databases.  
+* There is an XML::ET that works like CSV::ET, but with libxml instead of FasterCSV
+* There is a XML::ActiveRecordLoad that works like CSV::ActiveRecordLoad
+
+If you want to load all the utilities to play with them, you might want to use the etl command line utility:
+
+  davidrichards: etl
+  Loading ETL version: 0.0.2
+  >> class MyCSV < CSV::ET
+  >> def load
+  >> puts @data.inspect
+  >> end
+  >> end
+  => nil
+  >> mycsv = MyCSV.process(:source => '/tmp/test.csv')
+  [["this", " and", " that"], [1, 2, 3], [1, 3, 4], [1, 4, 5]]
+  => #<MyCSV:0x233915c @options={:source=>"/tmp/test.csv"}, @state=:complete, @raw=nil, @block=nil, @data=[["this", " and", " that"], [1, 2, 3], [1, 3, 4], [1, 4, 5]]>
+  >> mycsv.data
+  => [["this", " and", " that"], [1, 2, 3], [1, 3, 4], [1, 4, 5]]
 
 ==Installation
 
+  sudo gem install davidrichards-etl
+  
 === Dependencies
+
+The core library formally requires
+
+* activesupport for callback support
+* ostruct for using OpenStruct to contain the data
+* log4r for logging
+* fileutils for file system management
+
+Optionally, if you have these installed, they will be made available:
+
+* tegu_gears, for composing ETL with other analytical work or distributing the ETL process
+* data_frame, for more-easily understanding your data as a named data grid
+* babel_icious, for munging XML and hashes with some very useful transformation tools
+
+== TODO
+
+There are a number of things I'd like to do:
+
+* Get more ETL scripts gathered and well-documented.
+* Work out a better online-processing ETL.  I.e., to work on streaming data.
+* Integrate some of the transforms made available in ActiveWarehouse-ETL.  That is a very good tool specialized to data warehousing.
 
 ==COPYRIGHT
 
