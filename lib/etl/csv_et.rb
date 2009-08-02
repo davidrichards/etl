@@ -7,8 +7,16 @@ module CSV
   # local file, or from a remote file.  Uses FasterCSV and open-uri
   class ET < ETL
 
+    attr_reader :header
+    
+    after_transform :get_header_conditionally
+    
     protected
     
+      def get_header_conditionally
+        @header = @raw.shift if self.options[:extract_header]
+      end
+      
       # Attempts to get a string from a file, a uri, or a string
       def extract
         obj = self.options.fetch(:source, nil)
@@ -20,7 +28,7 @@ module CSV
       def extract_locally(filename)
         @raw = File.read(filename) if File.exist?(filename)
         ET.logger.info "Extracted the data from from filesystem" if @raw
-        true
+        @raw ? true : false
       end
       
       # Handles remote uri cases, reading the remote resource with open-uri, part of the Standard Library
@@ -38,10 +46,11 @@ module CSV
       # If this is a string, assumes that the contents of the string are CSV contents.
       def extract_from_string(string)
         @raw = string if string.is_a?(String)
+        @raw ? true : false
       end
 
       def transform
-        opts = self.options.fetch(:csv_parse_hash, {})
+        opts = self.options.fetch(:parse_with, {})
         ET.logger.info "Parsing the data with FasterCSV and #{default_csv_opts.merge(opts).inspect}"
         @raw = FCSV.parse(@data, default_csv_opts.merge(opts))
       end
