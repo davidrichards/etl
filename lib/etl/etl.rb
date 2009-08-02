@@ -7,6 +7,7 @@
 class ETL
   
   VALID_STATES = [:before_extract, :extract, :after_extract, :before_transform, :transform, :after_transform, :before_load, :load, :after_load, :complete].freeze
+  VALID_CALLBACKS = [:before_extract, :after_extract, :before_transform, :after_transform, :before_load, :after_load, :complete].freeze
 
   # Because we want to interchange these steps on the queueing system
   if defined?(TeguGears) == 'constant'
@@ -24,7 +25,7 @@ class ETL
       etl
     end
     alias :call :process
-
+    
     # Sets up a logger for the class.  Respects inheritance, so a different
     # logger will be created for each ETL subclass. 
     # Using the standard log levels here: DEBUG < INFO < WARN < ERROR < FATAL
@@ -49,7 +50,7 @@ class ETL
       
       # Setup a logger to a file with our formatting
       logfile = Log4r::FileOutputter.new('logfile', 
-                               :filename => File.join(self.logger_root, "#{self.to_s}.log"), 
+                               :filename => self.logger_filename, 
                                :trunc => false,
                                :level => Log4r::DEBUG)
       logfile.formatter = format
@@ -97,6 +98,10 @@ class ETL
       write_inheritable_attribute(:logger_root, value)
       @@logger_root = value if self == ETL
     end
+    
+    def logger_filename
+      File.join(self.logger_root, "#{self.to_s}.log")
+    end
   end
 
   # A series of callbacks that make the process quite transparent
@@ -132,35 +137,52 @@ class ETL
   # Working towards a universal workflow driver here.  The signature is
   # just a hash and a block.  That should work for about anything. 
   def process(options={}, &block)
-    # TODO: Add logging
-
     # Only setup the options the first time, the other times we are re-
     # starting the process. 
     @options = options unless @options
     @block = block
 
+    self.class.logger.info "Processing #{self.class.to_s}"
+    self.class.logger.info "To re-run this process, run: #{self.show_command}"
+    self.class.logger.info "Note: Also pass the same block to #{self.class.to_s}" if block
+
     etl_callback(:before_extract)
-    extract if @state == :extract
-    advance_from(:extract)
+
+    if @state == :extract
+      extract 
+      @state = :after_extract
+    end
+
     etl_callback(:after_extract)
+
+    # To be sure this is after all after_extract callbacks
+    process_raw_data
     
     etl_callback(:before_transform)
-    transform if @state == :transform
-    advance_from(:transform)
+
+    if @state == :transform
+      transform
+      @state = :after_transform
+    end
+
     etl_callback(:after_transform)
     
+    # To be sure this is after all after_tranform callbacks
+    process_raw_data
+    
     etl_callback(:before_load)
-    load if @state == :load
-    advance_from(:load)
+
+    if @state == :load
+      load
+      @state = :after_load
+    end
+
     etl_callback(:after_load)
     @state
   end
   
-  after_extract :process_raw_data
-  after_transform :process_raw_data
-  
   def reverse_to(state)
-    raise ArgumentError, "State must be one of #{VALID_STATES}" unless VALID_STATES.include?(state)
+    raise ArgumentError, "State must be one of #{VALID_STATES.inspect}" unless VALID_STATES.include?(state)
     loc = VALID_STATES.index(state)
     possible_states = VALID_STATES[0..loc]
     raise "Cannot reverse to a state that hasn't been acheived yet." unless possible_states.include?(state)
@@ -195,7 +217,7 @@ class ETL
     # Advances to the next state, only if we are in a valid state.
     def advance_from(callback)
       
-      raise ArgumentError, "State: #{callback} not recognized" unless VALID_STATES.include?(callback)
+      raise ArgumentError, "State: #{callback} not recognized" unless VALID_CALLBACKS.include?(callback)
       before_state = @state
       @state = case @state
       when :before_extract
@@ -227,6 +249,25 @@ class ETL
     def process_raw_data
       @data = @raw if defined?(@raw)
       @raw = nil
+    end
+    
+    def show_command
+      "#{self.class.to_s}.process(#{show_parsed_options})"
+    end
+    
+    def show_parsed_options
+      self.options.inject("") do |str, e|
+        if e.first.is_a?(Symbol) and e.last.is_a?(Symbol)
+          str << ":#{e.first} => :#{e.last}"
+        elsif e.first.is_a?(Symbol)
+          str << ":#{e.first} => #{e.last}"
+        elsif e.last.is_a?(Symbol)
+          str << "#{e.first} => :#{e.last}"
+        else
+          str << "#{e.first} => #{e.last}"
+        end
+        str
+      end
     end
 
 end
