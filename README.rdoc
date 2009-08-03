@@ -134,11 +134,7 @@ Basically, all I'm saying is that you should be able to get the logs to where yo
 
 There is also a log that goes to standard error for any error at WARN or above.  I use Log4r here, so that very rich logging environment can be used if you have more robust logging needs.
 
-== More Interesting Examples
-
-=== Financial Data Loaded in a Rails App
-
-=== Using BaseCamp Data
+I'd like to take some time and write some more interesting examples.  For example, I have been playing with downloading financial data for analysis, and that will be interesting.  There are a number of interesting data sources that I generally work with: the filesystem, iGTD, and BaseCamp data.  Maybe I can get those written up and into the examples folder. 
 
 === Utilities
 
@@ -151,11 +147,9 @@ I'll probably keep extracting generalized utilities and put them into this gem. 
     end
   end
   
-First, notice that I called the class CSV::ET, instead of CSV::ETL.  That's because I didn't implement any load function.  Also, notice that I required etl/csv_et explicitly.  There are a number of utilities that I've written.  More will be extracted and made useful over time:
+First, notice that I called the class CSV::ET, instead of CSV::ETL.  That's because I didn't implement any load function.  Also, notice that I required etl/csv_et explicitly.  
 
-* There is a CSV::ActiveRecordLoad that uses ar-extension's import function to load quickly into MySQL databases.  
-* There is an XML::ET that works like CSV::ET, but with libxml instead of FasterCSV
-* There is a XML::ActiveRecordLoad that works like CSV::ActiveRecordLoad
+There are a number of utilities that I have yet exported out of other projects and brought into this gem.  If you have some that you think are generally useful, please send them along as a patch, a concept, an email, or a pull request.
 
 If you want to load all the utilities to play with them, you might want to use the etl command line utility:
 
@@ -172,6 +166,8 @@ If you want to load all the utilities to play with them, you might want to use t
   => #<MyCSV:0x233915c @options={:source=>"/tmp/test.csv"}, @state=:complete, @raw=nil, @block=nil, @data=[["this", " and", " that"], [1, 2, 3], [1, 3, 4], [1, 4, 5]]>
   >> mycsv.data
   => [["this", " and", " that"], [1, 2, 3], [1, 3, 4], [1, 4, 5]]
+  
+Finally, beware the XML stuff for the moment.  I don't think there's much there.  I'm finishing a SCORM ETL process tonight or in the morning, then I can more likely bring in something that's actually useful.
 
 ==Installation
 
@@ -192,13 +188,26 @@ Optionally, if you have these installed, they will be made available:
 * data_frame, for more-easily understanding your data as a named data grid
 * babel_icious, for munging XML and hashes with some very useful transformation tools
 
+The various ETL implementations will each have their own dependencies.  The Bucket utility class, for instance, requires that the facets gem is installed (sudo gem install facets).  I'll document those dependencies as I fill in that part of the gem.
+
+== ActiveWarehouse-ETL
+
+I really like some of what ActiveWarehouse-ETL does.  If your target is a data warehouse, don't even start with ETL, start with ActiveWarehouse and ActiveWarehouse-ETL.  There are a lot of tools you'd be re-creating with ETL that are available for free.  Some of the more general tools from ActiveWarehouse-ETL belong in this gem too, in our style of code.  In particular:
+
+* The XML and SAX support
+* A table decoder
+* String to date
+* Webserver logs
+* Date to string
+* Time spans
+
 == TODO
 
 There are a number of things I'd like to do:
 
 * Get more ETL scripts gathered and well-documented.
 * Work out a better online-processing ETL.  I.e., to work on streaming data.
-* Integrate some of the transforms made available in ActiveWarehouse-ETL.  That is a very good tool specialized to data warehousing.
+* Integrate the ideas mentioned above from ActiveWarehouse-ETL.
 
 ==COPYRIGHT
 
