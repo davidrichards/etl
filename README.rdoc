@@ -101,7 +101,7 @@ If something goes wrong, you can address the issue and just restart it.
   
 The original options are still stored in @etl, so you don't need to resend those.  If you send them back in, they will be ignored anyway.  If the problem was that you setup the options wrong, you can write something like
 
-  @etl.options[:with => :better_options]
+  @etl.options[:with] = :better_options
   
 Because of the nature of the code, the stages that passed won't be re-run.  In fact, you can take a completed etl object and call it all day long, and it will never try to restart itself.  If you need it to restart, or you want to restart at an earlier stage, just do something like:
 
