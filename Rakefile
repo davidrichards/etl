@@ -4,11 +4,14 @@ begin
   require 'jeweler'
   Jeweler::Tasks.new do |s|
     s.name = "etl"
-    s.summary = %Q{TODO}
+    s.summary = %Q{A basic ETL utility to make extract, transform, and load projects simpler, logged, and sharable}
     s.email = "davidlamontrichards@gmail.com"
     s.homepage = "http://github.com/davidrichards/etl"
-    s.description = "TODO"
+    s.description = "A basic ETL utility to make extract, transform, and load projects simpler, logged, and sharable"
     s.authors = ["David Richards"]
+    s.add_dependency("activesupport")
+    s.add_dependency("log4r")
+    
   end
 rescue LoadError
   puts "Jeweler not available. Install it with: sudo gem install technicalpickles-jeweler -s http://gems.github.com"
