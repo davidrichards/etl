@@ -169,6 +169,10 @@ If you want to load all the utilities to play with them, you might want to use t
   
 Finally, beware the XML stuff for the moment.  I don't think there's much there.  I'm finishing a SCORM ETL process tonight or in the morning, then I can more likely bring in something that's actually useful.
 
+==Buckets
+
+I have a Bucket class that is created to assist with managing the granularity of an ETL process.  That class is well documented in the specs.  I am working on a project that will use the Bucket utility and the TimeBucket to get a regular time series of data from many sources.  So, look to that for some of the more exciting changes to this gem.
+
 ==Installation
 
   sudo gem install davidrichards-etl
@@ -205,9 +209,10 @@ I really like some of what ActiveWarehouse-ETL does.  If your target is a data w
 
 There are a number of things I'd like to do:
 
+* Work out the TimeBucket implementation.
 * Get more ETL scripts gathered and well-documented.
-* Work out a better online-processing ETL.  I.e., to work on streaming data.
 * Integrate the ideas mentioned above from ActiveWarehouse-ETL.
+* Work out a better online-processing ETL.  I.e., to work on streaming data.
 
 ==COPYRIGHT
 
