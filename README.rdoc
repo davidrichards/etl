@@ -173,6 +173,48 @@ Finally, beware the XML stuff for the moment.  I don't think there's much there.
 
 I have a Bucket class that is created to assist with managing the granularity of an ETL process.  That class is well documented in the specs.  I am working on a project that will use the Bucket utility and the TimeBucket to get a regular time series of data from many sources.  So, look to that for some of the more exciting changes to this gem.
 
+A basic example might be:
+
+  require 'etl/bucket'
+  b = Bucket.new(:this => 1, :that => 2)
+  b.white_list = [:this]
+  b.filtered_data
+  # => {:this => 1}
+  b.add :this => 2, :something => :ignored
+  b.raw_data
+  # => {:this => 2}
+  b.filtered_data
+  # => {:this => 2}
+  b.white_list = [:this, :that]
+  b.filtered_data
+  # => {:this => 2}
+  b.add(:that => 2)
+  b.filtered_data
+  # => {:this => 2, :that => 2}
+  b.dump
+  # => {:this => 2, :that => 2}
+  b.filtered_data
+  # => {}
+  b.add :this => 1
+  b.add :that => 2
+  b.to_a
+  # [1, 2]
+  b.to_open_struct
+  S = Struct.new(:this, :that)
+  b.to_struct(S)
+  class A
+    attr_reader :values
+    def initialize(*args)
+      @values = args
+    end
+  end
+  a = b.to_obj(A)
+  a.values
+  # => [1,2]
+  b.filter_block = lambda{|hash| :not_a_useful_block}
+  b.dump
+  # => :not_a_useful_block
+
 ==Installation
 
   sudo gem install davidrichards-etl
