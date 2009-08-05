@@ -19,34 +19,8 @@ module CSV
       
       # Attempts to get a string from a file, a uri, or a string
       def extract
-        obj = self.options.fetch(:source, nil)
-        extract_locally(obj) or extract_remotely(obj) or extract_from_string(obj)
-        raise ArgumentError, "Could not determine what #{obj.inspect} was.  CSV::ET cannot work with this data." unless @raw
-      end
-      
-      # Handles local filename cases, reading the contents of the file.
-      def extract_locally(filename)
-        @raw = File.read(filename) if File.exist?(filename)
-        ET.logger.info "Extracted the data from from filesystem" if @raw
-        @raw ? true : false
-      end
-      
-      # Handles remote uri cases, reading the remote resource with open-uri, part of the Standard Library
-      def extract_remotely(uri)
-        begin
-          open(uri) {|f| @raw = f.read}
-          ET.logger.info "Extracted the data from a remote location."
-          return true
-        rescue
-          ET.logger.info "Tested whether #{uri} was a remote resource.  Failed to read it."
-          return false
-        end
-      end
-      
-      # If this is a string, assumes that the contents of the string are CSV contents.
-      def extract_from_string(string)
-        @raw = string if string.is_a?(String)
-        @raw ? true : false
+        source = self.options.fetch(:source, nil)
+        @raw = OpenContent::Extractor.process(source, ET.logger)
       end
 
       def transform
