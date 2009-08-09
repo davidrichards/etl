@@ -2,16 +2,16 @@
 
 Gem::Specification.new do |s|
   s.name = %q{etl}
-  s.version = "0.0.5"
+  s.version = "0.0.6"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["David Richards"]
-  s.date = %q{2009-08-03}
+  s.date = %q{2009-08-09}
   s.default_executable = %q{etl}
   s.description = %q{A basic ETL utility to make extract, transform, and load projects simpler, logged, and sharable}
   s.email = %q{davidlamontrichards@gmail.com}
   s.executables = ["etl"]
-  s.files = ["README.rdoc", "VERSION.yml", "bin/etl", "lib/all.rb", "lib/etl", "lib/etl/active_record_loader.rb", "lib/etl/bucket.rb", "lib/etl/csv_et.rb", "lib/etl/etl.rb", "lib/etl/time_bucket.rb", "lib/etl/xml_et.rb", "lib/etl.rb", "lib/helpers", "lib/helpers/array.rb", "lib/helpers/observation.rb", "lib/helpers/open_struct.rb", "lib/helpers/string.rb", "lib/helpers/symbol.rb", "spec/etl", "spec/etl/bucket_spec.rb", "spec/etl/csv_et_spec.rb", "spec/etl/etl_spec.rb", "spec/etl/xml_et_spec.rb", "spec/etl_spec.rb", "spec/fixtures", "spec/fixtures/test_file.csv", "spec/helpers", "spec/helpers/array_spec.rb", "spec/helpers/observation_spec.rb", "spec/helpers/open_struct_spec.rb", "spec/helpers/string_spec.rb", "spec/helpers/symbol_spec.rb", "spec/spec_helper.rb"]
+  s.files = ["README.rdoc", "VERSION.yml", "bin/etl", "lib/all.rb", "lib/etl", "lib/etl/active_record_loader.rb", "lib/etl/bucket.rb", "lib/etl/csv_et.rb", "lib/etl/etl.rb", "lib/etl/rdf_2_data_frame.rb", "lib/etl/time_bucket.rb", "lib/etl/xml_et.rb", "lib/etl.rb", "lib/helpers", "lib/helpers/array.rb", "lib/helpers/observation.rb", "lib/helpers/open_content", "lib/helpers/open_content/extractor.rb", "lib/helpers/open_content.rb", "lib/helpers/open_struct.rb", "lib/helpers/string.rb", "lib/helpers/symbol.rb", "spec/etl", "spec/etl/bucket_spec.rb", "spec/etl/csv_et_spec.rb", "spec/etl/etl_spec.rb", "spec/etl/xml_et_spec.rb", "spec/etl_spec.rb", "spec/fixtures", "spec/fixtures/test_file.csv", "spec/helpers", "spec/helpers/array_spec.rb", "spec/helpers/observation_spec.rb", "spec/helpers/open_struct_spec.rb", "spec/helpers/string_spec.rb", "spec/helpers/symbol_spec.rb", "spec/spec_helper.rb"]
   s.has_rdoc = true
   s.homepage = %q{http://github.com/davidrichards/etl}
   s.rdoc_options = ["--inline-source", "--charset=UTF-8"]
