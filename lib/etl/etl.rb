@@ -30,7 +30,6 @@ class ETL
     # logger will be created for each ETL subclass. 
     # Using the standard log levels here: DEBUG < INFO < WARN < ERROR < FATAL
     def logger
-      
       logger_name = (self.to_s + "_logger").to_sym
       
       # Find and return the cached logger, if it's setup
@@ -50,7 +49,7 @@ class ETL
       
       # Setup a logger to a file with our formatting
       logfile = Log4r::FileOutputter.new('logfile', 
-                               :filename => self.logger_filename, 
+                               :filename => File.join(self.logger_root, self.logger_filename), 
                                :trunc => false,
                                :level => Log4r::DEBUG)
       logfile.formatter = format
@@ -85,7 +84,7 @@ class ETL
       when File.exist?(File.dirname(__FILE__) + "/log")
         File.expand_path(File.dirname(__FILE__) + '/log')
       else
-        File.expand_path(File.dirname(__FILE__))
+        File.expand_path('.')
       end
       logger_root = read_inheritable_attribute(:logger_root) || @@logger_root
     end
