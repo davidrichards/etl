@@ -49,7 +49,7 @@ class ETL
       
       # Setup a logger to a file with our formatting
       logfile = Log4r::FileOutputter.new('logfile', 
-                               :filename => File.join(self.logger_root, self.logger_filename), 
+                               :filename => self.logger_filename, 
                                :trunc => false,
                                :level => Log4r::DEBUG)
       logfile.formatter = format
