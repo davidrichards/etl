@@ -246,7 +246,7 @@ class ETL
     end
     
     def process_raw_data
-      @data = @raw if defined?(@raw)
+      @data = @raw if @raw
       @raw = nil
     end
     

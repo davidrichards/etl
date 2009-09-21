@@ -6,6 +6,7 @@
 # Figure out if TeguGears really should be doing this.  Come back to how I'll parallelize this process.  Demonstrate running this in parallel.
 
 require 'rubygems'
+gem 'activesupport', '>= 2.3'
 require 'activesupport'
 require 'ostruct'
 require 'log4r'
